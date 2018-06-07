@@ -178,9 +178,13 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
     @objc func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             
-            let searchViewFrame = view.convert(searchView.frame, from: contentView)
+//            let searchViewFrame = view.convert(searchView.frame, from: contentView)
+//
+//            searchView.frame = contentView.convert(CGRect(x: searchViewFrame.minX, y: searchViewFrame.minY - searchViewFrame.height - (searchViewFrame.minY - ( keyboardSize.minY - keyboardSize.height)), width: searchViewFrame.width, height: searchViewFrame.height), from: view)
             
-            searchView.frame = contentView.convert(CGRect(x: searchViewFrame.minX, y: searchViewFrame.minY - searchViewFrame.height - (searchViewFrame.minY - ( keyboardSize.minY - keyboardSize.height)), width: searchViewFrame.width, height: searchViewFrame.height), from: view)
+            var origin = searchView.frame.origin;
+            origin.y = searchView.frame.origin.y - keyboardSize.height / 2;
+            searchView.frame = CGRect(origin: origin, size: searchView.frame.size);
             
             captureButton.isHidden = true
 
