@@ -17,8 +17,8 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
     var query: String!
     var pallet: Pallet!
     
-    var statusHeight: CGFloat = 0.0;
-    var defaultSearchViewY: CGFloat = 0.0;
+    var statusHeight: CGFloat!
+    var defaultSearchViewY: CGFloat!
     
     @IBOutlet weak var queryInputField: UITextField!
     
@@ -76,8 +76,8 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
         
         //Add the video preview layer
         previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.frame = videoPreviewView.layer.frame
-        previewLayer.bounds = videoPreviewView.layer.bounds
+        previewLayer.frame = contentView.layer.frame
+        previewLayer.bounds = contentView.layer.bounds
         previewLayer.videoGravity = .resizeAspectFill
         videoPreviewView.layer.addSublayer(previewLayer)
 
@@ -101,8 +101,8 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        defaultSearchViewY = searchView.frame.origin.y;
-        statusHeight =  UIApplication.shared.statusBarFrame.size.height;
+        defaultSearchViewY = searchView.frame.origin.y
+        statusHeight =  UIApplication.shared.statusBarFrame.size.height
     }
     
     //If the view is unloading, and the capture session hasn't stopped, stop the capture session
@@ -112,6 +112,8 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
         if (captureSession?.isRunning == true) {
             captureSession.stopRunning()
         }
+        
+        self.view.endEditing(true)
     }
     
     //If the capture session has stopped, the user can touch anywhere on the screen to start it again
@@ -186,11 +188,10 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
     //When the keyboard appears, adjust the position of the saerch field, and hide the capture button
     @objc func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-            var origin = searchView.frame.origin;
+            var origin = searchView.frame.origin
+            origin.y = keyboardSize.origin.y - searchView.frame.size.height - statusHeight
             
-            origin.y = keyboardSize.origin.y - searchView.frame.size.height - statusHeight;
-            
-            searchView.frame = CGRect(origin: origin, size: searchView.frame.size);
+            searchView.frame = CGRect(origin: origin, size: searchView.frame.size)
             
             captureButton.isHidden = true
         }
@@ -198,9 +199,9 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
     
     //When the keyboard disappears, adjust the position of the saerch field, and display the capture button
     @objc func keyboardWillHide(notification: NSNotification) {
-        searchView.frame.origin.y = defaultSearchViewY;
+        searchView.frame.origin.y = defaultSearchViewY
         
-        captureButton.isHidden = false;
+        captureButton.isHidden = false
     }
     
     //Hide the keyboard when the users presses the done key on the keyboard
@@ -233,13 +234,12 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
         
         if (input?.count)! >= 7 {
             found(code: queryInputField.text!)
-            DispatchQueue.main.async {
-                self.searchButton.isHidden = false
-            }
+            
+            self.searchButton.isHidden = false
+            
         } else {
-            DispatchQueue.main.async {
-                self.searchButton.isHidden = true
-            }
+            self.searchButton.isHidden = true
+            
         }
         
     }
