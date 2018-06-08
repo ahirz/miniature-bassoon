@@ -17,6 +17,9 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
     var query: String!
     var pallet: Pallet!
     
+    var statusHeight: CGFloat = 0.0;
+    var defaultSearchViewY: CGFloat = 0.0;
+    
     @IBOutlet weak var queryInputField: UITextField!
     
     //Establish connections for the various views. These will be necessary later
@@ -95,6 +98,13 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        defaultSearchViewY = searchView.frame.origin.y;
+        statusHeight =  UIApplication.shared.statusBarFrame.size.height;
+    }
+    
     //If the view is unloading, and the capture session hasn't stopped, stop the capture session
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -171,31 +181,26 @@ class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDel
 //                }
 //            })
 //        }
-
     }
 
     //When the keyboard appears, adjust the position of the saerch field, and hide the capture button
     @objc func keyboardWillShow(notification: NSNotification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            var origin = searchView.frame.origin;
             
-            let searchViewFrame = view.convert(searchView.frame, from: contentView)
+            origin.y = keyboardSize.origin.y - searchView.frame.size.height - statusHeight;
             
-            searchView.frame = contentView.convert(CGRect(x: searchViewFrame.minX, y: searchViewFrame.minY - searchViewFrame.height - (searchViewFrame.minY - ( keyboardSize.minY - keyboardSize.height)), width: searchViewFrame.width, height: searchViewFrame.height), from: view)
+            searchView.frame = CGRect(origin: origin, size: searchView.frame.size);
             
             captureButton.isHidden = true
-
         }
     }
     
     //When the keyboard disappears, adjust the position of the saerch field, and display the capture button
     @objc func keyboardWillHide(notification: NSNotification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-            
-            let searchViewFrame = searchView.layer.frame
-            searchView.frame = contentView.convert(CGRect(x: searchViewFrame.minX, y: searchViewFrame.maxY - (searchViewFrame.minY - ( keyboardSize.minY - keyboardSize.height)), width: searchViewFrame.width, height: searchViewFrame.height), from: view)
-            
-            captureButton.isHidden = false
-        }
+        searchView.frame.origin.y = defaultSearchViewY;
+        
+        captureButton.isHidden = false;
     }
     
     //Hide the keyboard when the users presses the done key on the keyboard
